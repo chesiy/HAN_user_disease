@@ -1,0 +1,2 @@
+# CUDA_VISIBLE_DEVICES=1 nohup python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/description_sim16/" --bs=4 --model_type=mental/mental-bert-base-uncased --user_encoder=trans_abs --num_trans_layers=4 > full_data_mBert.log 2>&1 &
+CUDA_VISIBLE_DEVICES=1 python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/description_sim32/" --bs=4 --model_type=mental/mental-bert-base-uncased --user_encoder=trans_abs --num_trans_layers=4
