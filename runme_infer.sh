@@ -1,0 +1,10 @@
+# python -u infer.py --infer_input_dir "./processed/symptom_top16/" --ckpt_dir='./checkpoints/checkpoint-epoch=05-val_f1=0.71.ckpt' --infer_split=test --bs=32 --user_encoder=trans_abs_multi_att --num_trans_layers=4 --disease=None
+# python -u infer.py --infer_input_dir "./processed/symptom_top16/" --ckpt_dir='./checkpoints/checkpoint-epoch=05-val_f1=0.73.ckpt' --infer_split=test --bs=32 --user_encoder=trans_abs --num_trans_layers=4 --disease=None
+
+# python -u infer.py --infer_input_dir "./processed/symptom_multi_disease_top16/adhd" --ckpt_dir='./checkpoints/checkpoint-epoch=11-val_f1=0.73.ckpt' --infer_split=test --bs=32 --user_encoder=trans_abs --num_trans_layers=4 --disease=adhd
+# python -u infer.py --infer_input_dir "./processed/symptom_multi_disease_top16/anxiety" --ckpt_dir='./checkpoints/checkpoint-epoch=11-val_f1=0.76.ckpt' --infer_split=test --bs=32 --user_encoder=trans_abs --num_trans_layers=4 --disease=anxiety
+# python -u infer.py --infer_input_dir "./processed/symptom_multi_disease_top16/bipolar" --ckpt_dir='./checkpoints/checkpoint-epoch=06-val_f1=0.85.ckpt' --infer_split=test --bs=32 --user_encoder=trans_abs --num_trans_layers=4 --disease=bipolar
+# python -u infer.py --infer_input_dir "./processed/symptom_multi_disease_top16/depression" --ckpt_dir='./checkpoints/checkpoint-epoch=05-val_f1=0.78.ckpt' --infer_split=test --bs=32 --user_encoder=trans_abs --num_trans_layers=4 --disease=depression
+python -u infer.py --infer_input_dir "./processed/symptom_multi_disease_top16/eating" --ckpt_dir='./checkpoints/checkpoint-epoch=07-val_f1=0.73.ckpt' --infer_split=test --bs=32 --user_encoder=trans_abs --num_trans_layers=4 --disease=eating
+# python -u infer.py --infer_input_dir "./processed/symptom_multi_disease_top16/ocd" --ckpt_dir='./checkpoints/checkpoint-epoch=12-val_f1=0.73.ckpt' --infer_split=test --bs=32 --user_encoder=trans_abs --num_trans_layers=4 --disease=ocd
+# python -u infer.py --infer_input_dir "./processed/symptom_multi_disease_top16/ptsd" --ckpt_dir='./checkpoints/checkpoint-epoch=04-val_f1=0.65.ckpt' --infer_split=test --bs=32 --user_encoder=trans_abs --num_trans_layers=4 --disease=ptsd

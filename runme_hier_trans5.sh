@@ -1,2 +1,9 @@
 # CUDA_VISIBLE_DEVICES=1 nohup python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/description_sim16/" --bs=4 --model_type=mental/mental-bert-base-uncased --user_encoder=trans_abs --num_trans_layers=4 > full_data_mBert.log 2>&1 &
-CUDA_VISIBLE_DEVICES=1 python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/description_sim32/" --bs=4 --model_type=mental/mental-bert-base-uncased --user_encoder=trans_abs --num_trans_layers=4
+# CUDA_VISIBLE_DEVICES=1 python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/description_sim32/" --bs=8 --model_type=mental/mental-bert-base-uncased --user_encoder=trans_abs --num_trans_layers=4
+# CUDA_VISIBLE_DEVICES=0 nohup python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/description_sim16/" --bs=32 --user_encoder=trans_abs --num_trans_layers=4 --disease=None > full_data_desc_sim.log 2>&1 &
+CUDA_VISIBLE_DEVICES=0 nohup python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/symptom_top32/" --bs=32 --user_encoder=trans_abs_multi_att --num_trans_layers=4 --disease=None > full_32_symp_multi_attn_seed_2022.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=0 nohup python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/symptom_MMR_top16/" --bs=32 --user_encoder=trans_abs_multi_att --num_trans_layers=4 --disease=None > full_16_symp_MMR_multi_attn.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=0 nohup python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/symptom_top32/" --bs=8 --model_type=mental/mental-bert-base-uncased --user_encoder=trans_abs --num_trans_layers=4 > full_data_32_symp.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=0 python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/symptom_top16" --bs=32 --user_encoder=pairwise_multiattn --num_trans_layers=4
+# CUDA_VISIBLE_DEVICES=0 nohup python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/symptom_top16/" --bs 32 --user_encoder=pairwise --num_trans_layers=4 > pairwise.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=0 nohup python -u main_hier_clf.py --lr=1e-5 --input_dir "./processed/symptom_top16/" --bs=32 --user_encoder=pairwise_multiattn --num_trans_layers=4 > pairwise_multiattn_v2.log 2>&1 &
