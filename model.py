@@ -414,7 +414,7 @@ class SympGuidedMultiAtt(nn.Module):
         # self.attn_ff = nn.Linear(self.hidden_dim, 1)
         self.num_symps = 38
         self.num_diseases = 7
-        self.symp_attn_bias = nn.Parameter(torch.rand(1, self.num_symps))
+        self.symp_attn_bias = nn.Parameter(10 + 10 * torch.rand(1, self.num_symps))
         # [num_disease, num_symps]
         disease_symp_mask = np.load("disease_symp_mask.npy")
         self.disease_symp_mask = nn.Parameter(torch.FloatTensor(disease_symp_mask), requires_grad=False)
@@ -436,6 +436,7 @@ class SympGuidedMultiAtt(nn.Module):
             x = x + self.pos_emb[:x.shape[0], :].unsqueeze(1)
             x = self.user_encoder(x).squeeze(1) # [num_posts, hidden_size]
             # Symptom guided attention
+            # Inspired by Graph-informed Self-attention in "Leveraging Graph to Improve Abstractive Multi-Document Summarization"
             # Post with Disease-specific symptom will receive higher attention weight from the disease attention head
             attn_score = []
             for disease_id, attn_ff in enumerate(self.attn_ff):
