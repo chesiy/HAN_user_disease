@@ -1,3 +1,4 @@
+import enum
 from cv2 import log
 import torch
 import numpy as np
@@ -391,6 +392,69 @@ class BERTHierClassifierTransAbsMultiAtt(nn.Module):
         logits = torch.stack(logits, dim=0).transpose(0, 1).squeeze()
         return logits, attn_scores
 
+class SympGuidedMultiAtt(nn.Module):
+    '''with absolute learned positional embedding for post level'''
+    def __init__(self, model_type, num_heads=8, num_trans_layers=6, max_posts=32, freeze=False, pool_type="first") -> None:
+        super().__init__()
+        self.model_type = model_type
+        self.num_heads = num_heads
+        self.num_trans_layers = num_trans_layers
+        self.pool_type = pool_type
+        self.post_encoder = AutoModel.from_pretrained(model_type)
+        if freeze:
+            for name, param in self.post_encoder.named_parameters():
+                param.requires_grad = False
+        self.hidden_dim = self.post_encoder.config.hidden_size
+        self.max_posts = max_posts
+        # batch_first = False
+        self.pos_emb = nn.Parameter(torch.Tensor(max_posts, self.hidden_dim))
+        nn.init.xavier_uniform_(self.pos_emb)
+        encoder_layer = nn.TransformerEncoderLayer(d_model=self.hidden_dim, dim_feedforward=self.hidden_dim, nhead=num_heads, activation='gelu')
+        self.user_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_trans_layers)
+        # self.attn_ff = nn.Linear(self.hidden_dim, 1)
+        self.num_symps = 38
+        self.num_diseases = 7
+        self.symp_attn_bias = nn.Parameter(torch.rand(1, self.num_symps))
+        # [num_disease, num_symps]
+        disease_symp_mask = np.load("disease_symp_mask.npy")
+        self.disease_symp_mask = nn.Parameter(torch.FloatTensor(disease_symp_mask), requires_grad=False)
+        self.attn_ff = nn.ModuleList([nn.Linear(self.hidden_dim, 1) for disease in id2disease])
+        self.dropout = nn.Dropout(self.post_encoder.config.hidden_dropout_prob)
+        self.clf = nn.ModuleList([nn.Linear(self.hidden_dim, 1) for disease in id2disease])
+    
+    def forward(self, batch, **kwargs):
+        feats = []
+        attn_scores = []
+        for user_feats in batch:
+            post_outputs = self.post_encoder(user_feats["input_ids"], user_feats["attention_mask"], user_feats["token_type_ids"])
+            # [num_posts, seq_len, hidden_size] -> [num_posts, 1, hidden_size]
+            if self.pool_type == "first":
+                x = post_outputs.last_hidden_state[:, 0:1, :]
+            elif self.pool_type == 'mean':
+                x = mean_pooling(post_outputs.last_hidden_state, user_feats["attention_mask"]).unsqueeze(1)
+            # positional embedding for posts
+            x = x + self.pos_emb[:x.shape[0], :].unsqueeze(1)
+            x = self.user_encoder(x).squeeze(1) # [num_posts, hidden_size]
+            # Symptom guided attention
+            # Post with Disease-specific symptom will receive higher attention weight from the disease attention head
+            attn_score = []
+            for disease_id, attn_ff in enumerate(self.attn_ff):
+                symp_mask = self.disease_symp_mask[disease_id]
+                # achieved with the bias term
+                symp_bias = user_feats["symp"] * (symp_bias * symp_mask)
+                attn_score.append(torch.softmax(attn_ff(x + symp_bias).squeeze(), -1))
+            # weighted sum [hidden_size, ]
+            feat = [self.dropout(score @ x) for score in attn_score]
+            feats.append(feat)
+            attn_scores.append(attn_score)
+
+        logits = []
+        for i in range(len(id2disease)):
+            tmp = [feats[j][i] for j in range(len(feats))]
+            logit = self.clf[i](torch.stack(tmp))
+            logits.append(logit)
+        logits = torch.stack(logits, dim=0).transpose(0, 1).squeeze()
+        return logits, attn_scores
 
 def kmax_pooling(x, k):
     return x.sort(dim = 2)[0][:, :, -k:]
@@ -539,6 +603,8 @@ class HierClassifier(LightningInterface):
             self.model = BERTHierClassifierTransAbs(model_type, num_heads, num_trans_layers, freeze=freeze_word_level, pool_type=pool_type)
         elif user_encoder == "trans_abs_multi_att":
             self.model = BERTHierClassifierTransAbsMultiAtt(model_type, num_heads, num_trans_layers, freeze=freeze_word_level, pool_type=pool_type)
+        elif user_encoder == "symp_guide_multi_att":
+            self.model = SympGuidedMultiAtt(model_type, num_heads, num_trans_layers, freeze=freeze_word_level, pool_type=pool_type)
         elif user_encoder == "pairwise":
             in_dim = 38
             self.model = PairWiseClassifier(model_type, in_dim, num_heads, num_trans_layers, freeze=freeze_word_level, pool_type=pool_type)
